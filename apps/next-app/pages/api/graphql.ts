@@ -1,10 +1,12 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { createServer } from '@graphql-yoga/node'
 import SchemaBuilder from '@pothos/core'
+import { PrismaClient } from '@prisma/client'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '@conference-demos/prisma-client'
-
 import { z } from 'zod'
+export const prisma = new PrismaClient({
+  log: ['query'],
+})
 
 export const MovieSchema = z.object({
   id: z.number(),
@@ -38,7 +40,7 @@ export const config = {
   },
 }
 
-const builder = new SchemaBuilder<{
+export const builder = new SchemaBuilder<{
   Objects: { Movie: MovieType }
   Context: {
     TMDB_TOKEN: string
@@ -57,9 +59,9 @@ builder.objectType('Movie', {
     backdropImage: t.exposeString('backdropImage', {}),
     releaseDate: t.exposeString('release_date', {}),
     overview: t.exposeString('overview', {}),
-    voteAverage: t.exposeInt('vote_average', {}),
+    voteAverage: t.exposeFloat('vote_average', {}),
     voteCount: t.exposeInt('vote_count', {}),
-    popularity: t.exposeInt('popularity', {}),
+    popularity: t.exposeFloat('popularity', {}),
     originalLanguage: t.exposeString('original_language', {}),
     originalTitle: t.exposeString('original_title', {}),
     genreIds: t.exposeIntList('genre_ids', {}),
@@ -82,11 +84,9 @@ builder.queryType({
         page: t.arg.int(),
       },
       resolve: async (parent, { page }, ctx) => {
-        console.log('resolving nowPlaying', ctx.TMDB_TOKEN)
-
         const url = 'movie/now_playing'
         const response = await fetch(
-          `https://api.themoviedb.org/3/${url}?page=1`,
+          `https://api.themoviedb.org/3/${url}?page=${page}`,
           {
             headers: {
               Authorization: ctx.TMDB_TOKEN,
@@ -121,6 +121,7 @@ export default createServer<{
     const bearerTokenParts = bearerToken.split('Bearer ')
     const bearerTokenValue = bearerTokenParts[1]
 
+    console.log('bearerTokenValue', bearerTokenValue)
     if (bearerTokenValue) {
       response.uid = bearerTokenValue
       return response
@@ -129,3 +130,5 @@ export default createServer<{
     return response
   },
 })
+
+

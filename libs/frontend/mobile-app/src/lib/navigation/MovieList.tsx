@@ -1,12 +1,9 @@
 import React from 'react'
 import { Box, FlatList } from 'native-base'
 import { MoviePoster } from '../features/home/MoviePoster'
-import { MoviesType } from '@conference-demos/trpc-server'
 import { Link } from 'solito/link'
 
-export type Movie = MoviesType['movies'][number]
-
-export function MovieList({ movieData }: { movieData: Movie[] }) {
+export function MovieList({ movieData }: { movieData: any[] }) {
   return (
     <Box
       pb={5}
@@ -28,7 +25,7 @@ export function MovieList({ movieData }: { movieData: Movie[] }) {
             </Box>
           )
         }}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id?.toString() ?? ''}
       />
     </Box>
   )
