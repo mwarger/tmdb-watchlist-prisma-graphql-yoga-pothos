@@ -1,12 +1,17 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { createServer } from '@graphql-yoga/node'
 import SchemaBuilder from '@pothos/core'
-import { PrismaClient } from '@prisma/client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { z } from 'zod'
-export const prisma = new PrismaClient({
-  log: ['query'],
-})
+import { prisma } from '@conference-demos/prisma-client'
+
+import {
+  upsertUser,
+  createWatchlistItem,
+  deleteWatchlistItem,
+  getWatchlist,
+} from '@conference-demos/prisma-client'
+import { WatchListItem } from '@prisma/client'
 
 export const MovieSchema = z.object({
   id: z.number(),
@@ -41,9 +46,10 @@ export const config = {
 }
 
 export const builder = new SchemaBuilder<{
-  Objects: { Movie: MovieType }
+  Objects: { Movie: MovieType; WatchlistItem: WatchListItem }
   Context: {
     TMDB_TOKEN: string
+    uid: string
   }
 }>({})
 
@@ -51,7 +57,7 @@ builder.objectType('Movie', {
   fields: (t) => ({
     id: t.exposeID('id', {}),
     title: t.exposeString('title', {}),
-    postgerPath: t.exposeString('poster_path', {}),
+    posterPath: t.exposeString('poster_path', {}),
     posterImage: t.exposeString('posterImage', {}),
     backdropPath: t.exposeString('backdrop_path', {
       nullable: true,
@@ -67,6 +73,63 @@ builder.objectType('Movie', {
     genreIds: t.exposeIntList('genre_ids', {}),
     video: t.exposeBoolean('video', {}),
     adult: t.exposeBoolean('adult', {}),
+  }),
+})
+
+builder.objectType('WatchlistItem', {
+  fields: (t) => ({
+    id: t.exposeID('id', {}),
+    movieId: t.exposeString('movieId', {}),
+    userId: t.exposeString('userId', {}),
+  }),
+})
+
+const WatchlistInput = builder.inputType('CreateWatchlistInput', {
+  description:
+    "This holds the movieId for adding to the logged in user's watchlist",
+  fields: (t) => ({
+    id: t.string({ required: true }),
+  }),
+})
+
+builder.mutationType({
+  fields: (t) => ({
+    addToWatchlist: t.field({
+      type: 'WatchlistItem',
+      args: {
+        input: t.arg({ type: WatchlistInput, required: true }),
+      },
+      resolve: async (root, { input }, ctx) => {
+        const result = await createWatchlistItem({
+          movieId: input.id,
+          userId: ctx.uid,
+        })
+
+        return result
+      },
+    }),
+    removeFromWatchlist: t.field({
+      type: 'WatchlistItem',
+      args: {
+        input: t.arg({ type: WatchlistInput, required: true }),
+      },
+      resolve: async (root, { input }, ctx) => {
+        const result = await deleteWatchlistItem(input.id)
+
+        return result
+      },
+    }),
+    syncAccount: t.field({
+      type: 'Boolean',
+      resolve: async (root, args, ctx) => {
+        await upsertUser({
+          uid: ctx.uid,
+          email: ctx.uid,
+        })
+
+        return true
+      },
+    }),
   }),
 })
 
@@ -104,6 +167,52 @@ builder.queryType({
         }))
       },
     }),
+    watchlist: t.field({
+      type: ['Movie'],
+      resolve: async (parent, args, ctx) => {
+        const uid = ctx.uid
+
+        const watchlist = await getWatchlist(uid)
+
+        // make movie promises for each movie in watchlist
+        const moviePromises =
+          watchlist.map(({ movieId }) =>
+            fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
+              headers: {
+                Authorization: ctx.TMDB_TOKEN,
+              },
+            })
+          ) ?? []
+
+        // wait for all movie promises to resolve
+        const moviesResults = await Promise.all(moviePromises)
+
+        // get movies from results
+        const moviesJsonPromises = moviesResults.map((response) =>
+          response.json()
+        )
+
+        // wait for all movies to resolve
+        const moviesJson = await Promise.all(moviesJsonPromises)
+
+        const movies = moviesJson ?? []
+
+        return movies.map((movie) => {
+          let watchListId = ''
+          watchListId =
+            watchlist.find(
+              (watchlistItem) => watchlistItem.movieId === movie.id.toString()
+            )?.id ?? ''
+
+          return {
+            ...movie,
+            posterImage: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
+            backdropImage: `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`,
+            watchListId,
+          }
+        })
+      },
+    }),
   }),
 })
 
@@ -121,7 +230,6 @@ export default createServer<{
     const bearerTokenParts = bearerToken.split('Bearer ')
     const bearerTokenValue = bearerTokenParts[1]
 
-    console.log('bearerTokenValue', bearerTokenValue)
     if (bearerTokenValue) {
       response.uid = bearerTokenValue
       return response

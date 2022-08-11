@@ -33,8 +33,6 @@ export function GraphQLProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     const idToken = userData.username
-    console.log('idToken', idToken)
-
     client.setHeader('authorization', `Bearer ${idToken}`)
   }, [userData.username])
 

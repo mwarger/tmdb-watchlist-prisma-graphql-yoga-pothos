@@ -60,7 +60,7 @@ export async function deleteWatchlistItem(id: string) {
 
 // get watchlist
 export async function getWatchlist(userId: string) {
-  return prisma.user.findUnique({
+  const result = await prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -68,4 +68,7 @@ export async function getWatchlist(userId: string) {
       watchList: true,
     },
   })
+
+
+  return result?.watchList ?? []
 }

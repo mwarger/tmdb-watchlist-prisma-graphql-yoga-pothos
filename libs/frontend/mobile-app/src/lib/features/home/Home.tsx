@@ -6,7 +6,6 @@ import { client } from '../../providers/GraphQLProvider'
 
 export function NowPlayingScreen() {
   const { data, isLoading, error } = useNowPlayingQuery(client)
-  // const { data, error, isLoading } = trpc.useQuery(['tmdb.nowPlaying'])
 
   if (error) {
     if (error instanceof Error) {
