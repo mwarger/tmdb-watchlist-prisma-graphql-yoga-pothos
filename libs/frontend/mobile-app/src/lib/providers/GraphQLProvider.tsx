@@ -1,12 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { GraphQLClient } from 'graphql-request'
 import reactotron from 'reactotron-react-native'
+import { createClient, Provider } from 'urql'
 
 import Constants from 'expo-constants'
 import { useAuthenticatedUser } from './AuthenticationProvider'
 
-const queryClient = new QueryClient()
 const { manifest } = Constants
 let apiHost = ''
 const endpoint = Constants.manifest?.extra?.apiUrl ?? ''
@@ -26,17 +24,21 @@ if (__DEV__) {
   apiHost = endpoint
 }
 
-export const client = new GraphQLClient(`${apiHost}/api/graphql`)
+const url = `${apiHost}/api/graphql`
 
 export function GraphQLProvider({ children }: { children: React.ReactNode }) {
   const { userData } = useAuthenticatedUser()
-
-  React.useEffect(() => {
-    const idToken = userData.username
-    client.setHeader('authorization', `Bearer ${idToken}`)
+  const client = React.useMemo(() => {
+    return createClient({
+      url: url,
+      fetchOptions: () => {
+        const token = userData.username
+        return {
+          headers: { authorization: token ? `Bearer ${token}` : '' },
+        }
+      },
+    })
   }, [userData.username])
 
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
+  return <Provider value={client}>{children}</Provider>
 }

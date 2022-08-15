@@ -1,11 +1,19 @@
 import React from 'react'
 import { Center, Spinner, Text } from 'native-base'
 import { MovieList } from '../../navigation/MovieList'
-import { useNowPlayingQuery } from '../../../generated/graphql'
-import { client } from '../../providers/GraphQLProvider'
+import { useQuery } from 'urql'
+import { gql } from '../../../generated/gql'
+
+const NowPlayingQuery = gql(/* GraphQL */ `
+  query NowPlaying {
+    nowPlaying {
+      ...MovieFragment
+    }
+  }
+`)
 
 export function NowPlayingScreen() {
-  const { data, isLoading, error } = useNowPlayingQuery(client)
+  const [{ error, fetching, data }] = useQuery({ query: NowPlayingQuery })
 
   if (error) {
     if (error instanceof Error) {
@@ -15,7 +23,7 @@ export function NowPlayingScreen() {
     }
   }
 
-  if (isLoading)
+  if (fetching)
     return (
       <Center flex={1}>
         <Spinner />

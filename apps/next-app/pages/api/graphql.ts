@@ -30,6 +30,7 @@ export const MovieSchema = z.object({
   genre_ids: z.array(z.number()),
   video: z.boolean(),
   adult: z.boolean(),
+  watchListId: z.string(),
 })
 export const MoviesSchema = z.object({
   movies: z.array(MovieSchema),
@@ -73,6 +74,7 @@ builder.objectType('Movie', {
     genreIds: t.exposeIntList('genre_ids', {}),
     video: t.exposeBoolean('video', {}),
     adult: t.exposeBoolean('adult', {}),
+    watchListId: t.exposeString('watchListId', {}),
   }),
 })
 
@@ -140,6 +142,24 @@ builder.queryType({
         name: t.arg.string(),
       },
       resolve: (parent, { name }) => `hello, ${name || 'World'}`,
+    }),
+    movieById: t.field({
+      type: 'Movie',
+      args: {
+        id: t.arg.int(),
+      },
+      resolve: async (parent, { id }, ctx) => {
+        const url = `movie/${id}`
+        const response = await fetch(`https://api.themoviedb.org/3/${url}`, {
+          headers: {
+            Authorization: ctx.TMDB_TOKEN,
+          },
+        })
+
+        const data = await response.json()
+
+        return data
+      },
     }),
     nowPlaying: t.field({
       type: ['Movie'],

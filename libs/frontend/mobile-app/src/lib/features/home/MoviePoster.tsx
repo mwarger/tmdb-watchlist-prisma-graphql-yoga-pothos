@@ -1,15 +1,16 @@
 import React from 'react'
 import { Image, Text, AspectRatio, ScrollView } from 'native-base'
-import { Movie } from '../../navigation/MovieList'
+import { FragmentType, useFragment } from '../../../generated/gql'
+import { MovieFragment } from './MovieFragment'
 
 export function MoviePoster({
   item,
   showOverview,
 }: {
-  item: Movie
+  item: FragmentType<typeof MovieFragment>
   showOverview?: boolean
 }) {
-  // const route = useRoute()
+  const movie = useFragment(MovieFragment, item)
 
   return (
     <ScrollView>
@@ -21,9 +22,9 @@ export function MoviePoster({
       >
         <Image
           source={{
-            uri: item.posterImage,
+            uri: movie.posterImage,
           }}
-          alt={`${item.title} poster`}
+          alt={`${movie.title} poster`}
           resizeMode="cover"
           w={'full'}
           h={'full'}
@@ -40,7 +41,7 @@ export function MoviePoster({
         flexShrink={1}
         fontSize="md"
       >
-        {item.title}
+        {movie.title}
       </Text>
       {showOverview ? (
         <Text
@@ -53,7 +54,7 @@ export function MoviePoster({
           flexShrink={1}
           fontSize="sm"
         >
-          {item.overview}
+          {movie.overview}
         </Text>
       ) : null}
       <Text
@@ -64,8 +65,8 @@ export function MoviePoster({
         color="coolGray.800"
         alignSelf="flex-start"
       >
-        {item.release_date
-          ? `Released: ${new Date(item.release_date).toLocaleDateString()}`
+        {movie.releaseDate
+          ? `Released: ${new Date(movie.releaseDate).toLocaleDateString()}`
           : 'No date scheduled.'}
       </Text>
     </ScrollView>

@@ -1,17 +1,17 @@
 overwrite: true
 errorsOnly: true
 
-schema: build-schema.js
-documents: "libs/frontend/**/graphql/**/!(*.d).{ts,tsx}"
-generates:
-  libs/frontend/mobile-app/src/generated/graphql.ts:
-    plugins:
-      - typescript
-      - typescript-operations
-      - typescript-react-query
-    config:
-      fetcher: graphql-request
+schema: http://localhost:4200/api/graphql
+documents: 
+  - "libs/frontend/**/!(*.d).{ts,tsx}"
+  - '!libs/frontend/**/gql/**/*'
 
+generates:
+  libs/frontend/mobile-app/src/generated/gql/:
+    preset: gql-tag-operations-preset
+    presetConfig:
+      # define which module you want to import your gql function from
+      fragmentMasking: true
   ./graphql.schema.json:
     plugins:
       - "introspection"

@@ -1,11 +1,12 @@
 import React from 'react'
 import { Center, Spinner, Text } from 'native-base'
-import { trpc } from '@conference-demos/trpc-client'
 import { MovieList } from './MovieList'
 import { TextLink } from 'solito/link'
+import { useQuery } from 'urql'
+import { WatchlistQuery } from './WatchlistQuery'
 
 export function MyWatchlist() {
-  const { data, error, isLoading } = trpc.useQuery(['user.watchlist'])
+  const [{ error, fetching, data }] = useQuery({ query: WatchlistQuery })
 
   if (error) {
     console.log('error', error)
@@ -13,7 +14,7 @@ export function MyWatchlist() {
     return <Text>Error: {error.message}</Text>
   }
 
-  if (isLoading)
+  if (fetching)
     return (
       <Center flex={1}>
         <Spinner />
@@ -26,7 +27,7 @@ export function MyWatchlist() {
       </Center>
     )
 
-  const movieData = data.movies
+  const movieData = data.watchlist ?? []
 
   // show nothing if no movies
   if (!movieData.length)

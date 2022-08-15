@@ -32,6 +32,7 @@
     "@trpc/next": "^9.25.3",
     "@trpc/react": "^9.25.3",
     "@trpc/server": "^9.25.3",
+    "@urql/core": "^2.6.1",
     "axios": "^0.27.2",
     "core-js": "^3.6.5",
     "cors": "^2.8.5",
@@ -66,6 +67,7 @@
     "solito": "^0.0.26",
     "superjson": "^1.9.1",
     "tslib": "^2.3.0",
+    "urql": "^2.2.3",
     "zod": "^3.17.10"
   },
   "devDependencies": {
@@ -73,6 +75,7 @@
     "@gqty/cli": "^3.3.1-alpha-74109b4.0",
     "@graphql-codegen/add": "^3.2.1",
     "@graphql-codegen/cli": "2.11.5",
+    "@graphql-codegen/gql-tag-operations-preset": "^1.5.4",
     "@graphql-codegen/introspection": "2.2.1",
     "@graphql-codegen/typescript": "2.7.3",
     "@graphql-codegen/typescript-operations": "2.5.3",

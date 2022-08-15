@@ -3,15 +3,33 @@ import { createParam } from 'solito'
 
 import { Text, Box, VStack, Button, Spinner } from 'native-base'
 import { trpc } from '@conference-demos/trpc-client'
-import { InferQueryOutput } from '@conference-demos/trpc-server'
 import { parseMovieId } from './parseMovieId'
 import { stringifyMovieId } from './stringifyMovieId'
 import { MoviePoster } from '../../home/MoviePoster'
 import { WatchlistMovieScreenNavigationProps } from '../../../navigation/Navigation'
+import { WatchlistQuery } from '../../../navigation/WatchlistQuery'
+import { useMutation, useQuery } from 'urql'
+import { gql } from '../../../../generated/gql'
 
 const { useParam } = createParam<{ id: number }>()
 
-type MovieById = InferQueryOutput<'tmdb.byId'>
+const MovieByIdQuery = gql(/* GraphQL */ `
+  query MovieById($id: Int!) {
+    movieById(id: $id) {
+      id
+      title
+      ...MovieFragment
+    }
+  }
+`)
+
+const AddToWatchlistMutation = gql(/* GraphQL */ `
+  mutation AddToWatchlist($input: CreateWatchlistInput!) {
+    addToWatchlist(input: $input) {
+      id
+    }
+  }
+`)
 
 export function MovieDetailScreen({
   navigation,
@@ -22,25 +40,29 @@ export function MovieDetailScreen({
     stringify: stringifyMovieId,
   })
 
-  const { mutate: addToWatchlist, isLoading: addToWatchlistLoading } =
-    trpc.useMutation(['user.addToWatchlist'])
+  const [addToWatchlistResult, addToWatchlist] = useMutation(
+    AddToWatchlistMutation
+  )
   const { mutate: removeFromWatchlist, isLoading: removeFromWatchlistLoading } =
     trpc.useMutation(['user.removeFromWatchlist'])
 
-  const { data, isLoading: isWatchlistLoading } = trpc.useQuery([
-    'user.watchlist',
-  ])
-  const watchlist = data?.movies ?? []
-  const utils = trpc.useContext()
-  const movieResult = trpc.useQuery(['tmdb.byId', { id }], {
-    enabled: id > 0,
+  const [{ fetching: isWatchlistLoading, data }] = useQuery({
+    query: WatchlistQuery,
   })
 
-  const movie = movieResult.data
+  const watchlist = data?.watchlist ?? []
+
+  const utils = trpc.useContext()
+  const [movieResult] = useQuery({
+    query: MovieByIdQuery,
+    variables: { id },
+  })
+
+  const movie = movieResult.data?.movieById
 
   let watchedMovieId = ''
   if (watchlist) {
-    watchedMovieId = watchlist.find((m) => m.id === id)?.watchListId
+    watchedMovieId = watchlist.find((m) => +m.id === id)?.watchListId ?? ''
   }
 
   React.useEffect(() => {
@@ -49,19 +71,12 @@ export function MovieDetailScreen({
 
   if (!movieResult) return null
 
-  function handleWatched(movie: MovieById) {
-    if (!movie) {
-      return
-    }
-
-    addToWatchlist(
-      { id: movie.id.toString() },
-      {
-        onSuccess() {
-          utils.invalidateQueries(['user.watchlist'])
-        },
-      }
-    )
+  function handleWatched(movieId: string) {
+    addToWatchlist({
+      input: {
+        id: movieId,
+      },
+    })
   }
 
   function removeWatched(watchlistId: string) {
@@ -106,8 +121,8 @@ export function MovieDetailScreen({
           </Button>
         ) : (
           <Button
-            onPress={() => handleWatched(movie)}
-            isLoading={addToWatchlistLoading}
+            onPress={() => handleWatched(movie.id)}
+            isLoading={addToWatchlistResult.fetching}
           >
             I've watched this!
           </Button>
