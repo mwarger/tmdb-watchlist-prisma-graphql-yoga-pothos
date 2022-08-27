@@ -50,10 +50,13 @@ export async function createWatchlistItem(data: {
   })
 }
 
-export async function deleteWatchlistItem(id: string) {
+export async function deleteWatchlistItem(data: {
+  movieId: string
+  userId: string
+}) {
   return prisma.watchListItem.delete({
     where: {
-      id,
+      userId_movieId: data,
     },
   })
 }

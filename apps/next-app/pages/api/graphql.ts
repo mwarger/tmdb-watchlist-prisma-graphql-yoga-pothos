@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { createServer } from '@graphql-yoga/node'
 import SchemaBuilder from '@pothos/core'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -86,7 +85,7 @@ builder.objectType('WatchlistItem', {
   }),
 })
 
-const WatchlistInput = builder.inputType('CreateWatchlistInput', {
+const WatchlistInput = builder.inputType('WatchlistInput', {
   description:
     "This holds the movieId for adding to the logged in user's watchlist",
   fields: (t) => ({
@@ -116,7 +115,12 @@ builder.mutationType({
         input: t.arg({ type: WatchlistInput, required: true }),
       },
       resolve: async (root, { input }, ctx) => {
-        const result = await deleteWatchlistItem(input.id)
+        console.log('INPUT', input.id)
+
+        const result = await deleteWatchlistItem({
+          movieId: input.id,
+          userId: ctx.uid,
+        })
 
         return result
       },
@@ -150,15 +154,25 @@ builder.queryType({
       },
       resolve: async (parent, { id }, ctx) => {
         const url = `movie/${id}`
-        const response = await fetch(`https://api.themoviedb.org/3/${url}`, {
-          headers: {
-            Authorization: ctx.TMDB_TOKEN,
-          },
-        })
 
-        const data = await response.json()
+        try {
+          const response = await fetch(`https://api.themoviedb.org/3/${url}`, {
+            headers: {
+              Authorization: ctx.TMDB_TOKEN,
+            },
+          })
 
-        return data
+          const data = await response.json()
+          console.log('data', data)
+
+          return {
+            ...data,
+            posterImage: `https://image.tmdb.org/t/p/w500${data.poster_path}`,
+            backdropImage: `https://image.tmdb.org/t/p/w500${data.backdrop_path}`,
+          }
+        } catch (error) {
+          console.log(error)
+        }
       },
     }),
     nowPlaying: t.field({
@@ -187,50 +201,13 @@ builder.queryType({
         }))
       },
     }),
-    watchlist: t.field({
-      type: ['Movie'],
+    watchlist: t.stringList({
       resolve: async (parent, args, ctx) => {
         const uid = ctx.uid
 
         const watchlist = await getWatchlist(uid)
 
-        // make movie promises for each movie in watchlist
-        const moviePromises =
-          watchlist.map(({ movieId }) =>
-            fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
-              headers: {
-                Authorization: ctx.TMDB_TOKEN,
-              },
-            })
-          ) ?? []
-
-        // wait for all movie promises to resolve
-        const moviesResults = await Promise.all(moviePromises)
-
-        // get movies from results
-        const moviesJsonPromises = moviesResults.map((response) =>
-          response.json()
-        )
-
-        // wait for all movies to resolve
-        const moviesJson = await Promise.all(moviesJsonPromises)
-
-        const movies = moviesJson ?? []
-
-        return movies.map((movie) => {
-          let watchListId = ''
-          watchListId =
-            watchlist.find(
-              (watchlistItem) => watchlistItem.movieId === movie.id.toString()
-            )?.id ?? ''
-
-          return {
-            ...movie,
-            posterImage: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
-            backdropImage: `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`,
-            watchListId,
-          }
-        })
+        return watchlist.map((item) => item.movieId)
       },
     }),
   }),
@@ -258,5 +235,3 @@ export default createServer<{
     return response
   },
 })
-
-

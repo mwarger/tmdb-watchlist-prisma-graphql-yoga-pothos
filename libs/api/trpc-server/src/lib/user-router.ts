@@ -44,7 +44,7 @@ export const userDataRouter = createRouter()
       id: z.string(),
     }),
     async resolve({ ctx, input }) {
-      await deleteWatchlistItem(input.id)
+      await deleteWatchlistItem({ movieId: input.id })
     },
   })
   .query('watchlist', {

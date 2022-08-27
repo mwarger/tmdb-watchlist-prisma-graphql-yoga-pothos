@@ -2,7 +2,6 @@ import React from 'react'
 import { createParam } from 'solito'
 
 import { Text, Box, VStack, Button, Spinner } from 'native-base'
-import { trpc } from '@conference-demos/trpc-client'
 import { parseMovieId } from './parseMovieId'
 import { stringifyMovieId } from './stringifyMovieId'
 import { MoviePoster } from '../../home/MoviePoster'
@@ -24,9 +23,19 @@ const MovieByIdQuery = gql(/* GraphQL */ `
 `)
 
 const AddToWatchlistMutation = gql(/* GraphQL */ `
-  mutation AddToWatchlist($input: CreateWatchlistInput!) {
+  mutation AddToWatchlist($input: WatchlistInput!) {
     addToWatchlist(input: $input) {
       id
+      movieId
+    }
+  }
+`)
+
+const RemoveFromWatchlistMutation = gql(/* GraphQL */ `
+  mutation RemoveFromWatchlist($input: WatchlistInput!) {
+    removeFromWatchlist(input: $input) {
+      id
+      movieId
     }
   }
 `)
@@ -43,8 +52,9 @@ export function MovieDetailScreen({
   const [addToWatchlistResult, addToWatchlist] = useMutation(
     AddToWatchlistMutation
   )
-  const { mutate: removeFromWatchlist, isLoading: removeFromWatchlistLoading } =
-    trpc.useMutation(['user.removeFromWatchlist'])
+  const [removeFromWatchlistResult, removeFromWatchlist] = useMutation(
+    RemoveFromWatchlistMutation
+  )
 
   const [{ fetching: isWatchlistLoading, data }] = useQuery({
     query: WatchlistQuery,
@@ -52,7 +62,6 @@ export function MovieDetailScreen({
 
   const watchlist = data?.watchlist ?? []
 
-  const utils = trpc.useContext()
   const [movieResult] = useQuery({
     query: MovieByIdQuery,
     variables: { id },
@@ -62,7 +71,7 @@ export function MovieDetailScreen({
 
   let watchedMovieId = ''
   if (watchlist) {
-    watchedMovieId = watchlist.find((m) => +m.id === id)?.watchListId ?? ''
+    watchedMovieId = watchlist.find((m) => +m === id) ?? ''
   }
 
   React.useEffect(() => {
@@ -72,21 +81,21 @@ export function MovieDetailScreen({
   if (!movieResult) return null
 
   function handleWatched(movieId: string) {
-    addToWatchlist({
-      input: {
-        id: movieId,
+    addToWatchlist(
+      {
+        input: {
+          id: movieId,
+        },
       },
-    })
+      { additionalTypenames: ['WatchlistItem'] }
+    )
   }
 
   function removeWatched(watchlistId: string) {
+    console.log('watchlistId', watchlistId)
     removeFromWatchlist(
-      { id: watchlistId },
-      {
-        onSuccess() {
-          utils.invalidateQueries(['user.watchlist'])
-        },
-      }
+      { input: { id: watchlistId } },
+      { additionalTypenames: ['WatchlistItem'] }
     )
   }
 
@@ -115,7 +124,7 @@ export function MovieDetailScreen({
         ) : watchedMovieId ? (
           <Button
             onPress={() => removeWatched(watchedMovieId)}
-            isLoading={removeFromWatchlistLoading}
+            isLoading={removeFromWatchlistResult.fetching}
           >
             Remove from watchlist
           </Button>

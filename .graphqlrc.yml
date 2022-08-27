@@ -1,0 +1,3 @@
+# .graphqlrc.yml
+schema: 'graphql.schema.json'
+documents: 'libs/frontend/**/*.{graphql,js,ts,jsx,tsx}'
