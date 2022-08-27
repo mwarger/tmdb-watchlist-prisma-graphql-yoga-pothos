@@ -2,7 +2,6 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "api-trpc-server": "libs/api/trpc-server",
     "frontend-mobile-app": "libs/frontend/mobile-app",
     "mobile": "apps/mobile",
     "mobile-e2e": "apps/mobile-e2e",
