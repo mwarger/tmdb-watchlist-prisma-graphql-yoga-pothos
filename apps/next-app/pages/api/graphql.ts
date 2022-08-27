@@ -163,7 +163,6 @@ builder.queryType({
           })
 
           const data = await response.json()
-          console.log('data', data)
 
           return {
             ...data,
@@ -199,6 +198,39 @@ builder.queryType({
           posterImage: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
           backdropImage: `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`,
         }))
+      },
+    }),
+    movieList: t.field({
+      type: ['Movie'],
+      args: {
+        ids: t.arg.stringList({
+          required: true,
+        }),
+      },
+      resolve: async (parent, { ids }, ctx) => {
+        const urls = ids.map((id) => `movie/${id}`)
+
+        const promises = urls.map((url) => {
+          return fetch(`https://api.themoviedb.org/3/${url}`, {
+            headers: {
+              Authorization: ctx.TMDB_TOKEN,
+            },
+          })
+        })
+
+        const responses = await Promise.all(promises)
+
+        const data = await Promise.all(
+          responses.map((response) => response.json())
+        )
+
+        return (
+          data.map((movie) => ({
+            ...movie,
+            posterImage: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
+            backdropImage: `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`,
+          })) ?? []
+        )
       },
     }),
     watchlist: t.stringList({

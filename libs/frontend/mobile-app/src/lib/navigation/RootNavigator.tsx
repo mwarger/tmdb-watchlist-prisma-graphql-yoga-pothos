@@ -5,12 +5,21 @@ import { AuthStack } from './AuthStack'
 import { WatchlistStack } from './Navigation'
 import * as SplashScreen from 'expo-splash-screen'
 import reactotron from 'reactotron-react-native'
-import { trpc } from '@conference-demos/trpc-client'
+import { gql } from '../../generated/gql'
+import { useMutation } from 'urql'
+
+const SyncAccountMutation = gql(/* GraphQL */ `
+  mutation SyncAccount {
+    syncAccount
+  }
+`)
 
 export function RootNavigator() {
   reactotron.log?.('RootNavigator')
 
-  const syncAccount = trpc.useMutation(['user.syncAccount'], {}).mutateAsync
+  const [, syncAccount] = useMutation(SyncAccountMutation)
+
+
   const { userData } = useAuthenticatedUser()
   const [isLoading, setIsLoading] = React.useState(true)
 

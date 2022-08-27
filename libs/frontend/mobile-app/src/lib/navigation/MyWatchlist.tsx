@@ -4,9 +4,28 @@ import { MovieList } from './MovieList'
 import { TextLink } from 'solito/link'
 import { useQuery } from 'urql'
 import { WatchlistQuery } from './WatchlistQuery'
+import { gql } from '../../generated/gql'
+
+const MyWatchlistQuery = gql(/* GraphQL */ `
+  query MyWatchlist($ids: [String!]!) {
+    movieList(ids: $ids) {
+      ...MovieFragment
+    }
+  }
+`)
 
 export function MyWatchlist() {
   const [{ error, fetching, data }] = useQuery({ query: WatchlistQuery })
+  const [
+    {
+      error: myWatchlistError,
+      fetching: myWatchlistFetching,
+      data: myWatchlistData,
+    },
+  ] = useQuery({
+    query: MyWatchlistQuery,
+    variables: { ids: data?.watchlist ?? [] },
+  })
 
   if (error) {
     console.log('error', error)
@@ -27,7 +46,7 @@ export function MyWatchlist() {
       </Center>
     )
 
-  const movieData = data.watchlist ?? []
+  const movieData = myWatchlistData?.movieList ?? []
 
   // show nothing if no movies
   if (!movieData.length)

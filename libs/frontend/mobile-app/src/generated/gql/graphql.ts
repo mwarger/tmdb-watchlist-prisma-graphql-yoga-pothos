@@ -56,6 +56,7 @@ export type Query = {
   __typename?: 'Query';
   hello: Scalars['String'];
   movieById: Movie;
+  movieList: Array<Movie>;
   nowPlaying: Array<Movie>;
   watchlist: Array<Scalars['String']>;
 };
@@ -68,6 +69,11 @@ export type QueryHelloArgs = {
 
 export type QueryMovieByIdArgs = {
   id?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryMovieListArgs = {
+  ids: Array<Scalars['String']>;
 };
 
 
@@ -121,6 +127,21 @@ export type RemoveFromWatchlistMutationVariables = Exact<{
 
 export type RemoveFromWatchlistMutation = { __typename?: 'Mutation', removeFromWatchlist: { __typename?: 'WatchlistItem', id: string, movieId: string } };
 
+export type MyWatchlistQueryVariables = Exact<{
+  ids: Array<Scalars['String']> | Scalars['String'];
+}>;
+
+
+export type MyWatchlistQuery = { __typename?: 'Query', movieList: Array<(
+    { __typename?: 'Movie' }
+    & { ' $fragmentRefs': { 'MovieFragmentFragment': MovieFragmentFragment } }
+  )> };
+
+export type SyncAccountMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SyncAccountMutation = { __typename?: 'Mutation', syncAccount: boolean };
+
 export type WatchlistQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -131,4 +152,6 @@ export const NowPlayingDocument = {"kind":"Document","definitions":[{"kind":"Ope
 export const MovieByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MovieById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"movieById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"FragmentSpread","name":{"kind":"Name","value":"MovieFragment"}}]}}]}},...MovieFragmentFragmentDoc.definitions]} as unknown as DocumentNode<MovieByIdQuery, MovieByIdQueryVariables>;
 export const AddToWatchlistDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddToWatchlist"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"WatchlistInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addToWatchlist"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"movieId"}}]}}]}}]} as unknown as DocumentNode<AddToWatchlistMutation, AddToWatchlistMutationVariables>;
 export const RemoveFromWatchlistDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveFromWatchlist"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"WatchlistInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeFromWatchlist"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"movieId"}}]}}]}}]} as unknown as DocumentNode<RemoveFromWatchlistMutation, RemoveFromWatchlistMutationVariables>;
+export const MyWatchlistDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MyWatchlist"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"movieList"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"MovieFragment"}}]}}]}},...MovieFragmentFragmentDoc.definitions]} as unknown as DocumentNode<MyWatchlistQuery, MyWatchlistQueryVariables>;
+export const SyncAccountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"syncAccount"}}]}}]} as unknown as DocumentNode<SyncAccountMutation, SyncAccountMutationVariables>;
 export const WatchlistDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Watchlist"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"watchlist"}}]}}]} as unknown as DocumentNode<WatchlistQuery, WatchlistQueryVariables>;

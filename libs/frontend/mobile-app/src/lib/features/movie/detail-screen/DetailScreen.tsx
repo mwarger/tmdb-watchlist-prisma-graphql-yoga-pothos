@@ -92,7 +92,6 @@ export function MovieDetailScreen({
   }
 
   function removeWatched(watchlistId: string) {
-    console.log('watchlistId', watchlistId)
     removeFromWatchlist(
       { input: { id: watchlistId } },
       { additionalTypenames: ['WatchlistItem'] }

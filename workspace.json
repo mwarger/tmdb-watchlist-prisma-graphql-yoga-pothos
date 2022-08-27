@@ -4,7 +4,6 @@
   "projects": {
     "api-trpc-server": "libs/api/trpc-server",
     "frontend-mobile-app": "libs/frontend/mobile-app",
-    "frontend-trpc-client": "libs/frontend/trpc-client",
     "mobile": "apps/mobile",
     "mobile-e2e": "apps/mobile-e2e",
     "next-app": "apps/next-app",
