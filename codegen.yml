@@ -1,7 +1,7 @@
 overwrite: true
 errorsOnly: true
 
-schema: http://localhost:4200/api/graphql
+schema: build-schema.js
 documents: 
   - "libs/frontend/**/!(*.d).{ts,tsx}"
   - '!libs/frontend/**/gql/**/*'

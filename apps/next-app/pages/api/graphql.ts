@@ -2,15 +2,69 @@ import { createServer } from '@graphql-yoga/node'
 import SchemaBuilder from '@pothos/core'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { z } from 'zod'
-import { prisma } from '@conference-demos/prisma-client'
 
-import {
-  upsertUser,
-  createWatchlistItem,
-  deleteWatchlistItem,
-  getWatchlist,
-} from '@conference-demos/prisma-client'
-import { WatchListItem } from '@prisma/client'
+import { PrismaClient, WatchListItem } from '@prisma/client'
+
+export const prisma = new PrismaClient({
+  log: ['query'],
+})
+
+export async function upsertUser({
+  uid,
+  email,
+}: {
+  uid: string
+  email?: string
+}) {
+  return prisma.user.upsert({
+    where: {
+      id: uid,
+    },
+    update: {
+      email: email,
+    },
+    create: {
+      id: uid,
+      email: email,
+    },
+  })
+}
+
+export async function createWatchlistItem(data: {
+  movieId: string
+  userId: string
+}) {
+  return prisma.watchListItem.create({
+    data,
+  })
+}
+
+export async function deleteWatchlistItem(data: {
+  movieId: string
+  userId: string
+}) {
+  return prisma.watchListItem.delete({
+    where: {
+      userId_movieId: data,
+    },
+  })
+}
+
+// get watchlist
+export async function getWatchlist(userId: string) {
+  const result = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      watchList: true,
+    },
+  })
+
+  return result?.watchList ?? []
+}
+
+
 
 export const MovieSchema = z.object({
   id: z.number(),

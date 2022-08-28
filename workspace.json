@@ -6,7 +6,6 @@
     "mobile": "apps/mobile",
     "mobile-e2e": "apps/mobile-e2e",
     "next-app": "apps/next-app",
-    "next-app-e2e": "apps/next-app-e2e",
-    "prisma-client": "libs/database/prisma-client"
+    "next-app-e2e": "apps/next-app-e2e"
   }
 }
