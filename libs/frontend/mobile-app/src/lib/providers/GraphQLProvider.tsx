@@ -9,7 +9,6 @@ import { WatchlistQuery } from '../navigation/WatchlistQuery'
 import {
   AddToWatchlistMutationVariables,
   RemoveFromWatchlistMutationVariables,
-  WatchlistQueryVariables,
 } from '../../generated/gql/graphql'
 
 const { manifest } = Constants
